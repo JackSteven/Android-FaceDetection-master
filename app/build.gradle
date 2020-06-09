@@ -4,6 +4,8 @@ apply plugin: 'kotlin-android'
 
 apply plugin: 'kotlin-android-extensions'
 
+apply plugin: 'org.greenrobot.greendao'
+
 android {
     compileSdkVersion 29
     defaultConfig {
@@ -25,14 +27,21 @@ android {
             abiFilters 'armeabi-v7a'
         }
     }
+    greendao{
+        schemaVersion 1
+        daoPackage 'com.greendao.gen'
+        targetGenDir 'src/main/java'
+    }
 
     buildTypes {
         debug {
             minifyEnabled false
+            buildConfigField "boolean", "isDebug", "true"
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
         release {
             minifyEnabled false
+            buildConfigField "boolean", "isDebug", "false"
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
     }
@@ -65,4 +74,7 @@ dependencies {
     implementation project(path: ':sdk')
     implementation 'com.zhihu.android:matisse:0.5.2'
     implementation 'com.squareup.picasso:picasso:2.5.2'
+    implementation 'com.blankj:utilcode:1.23.5'
+    implementation 'org.greenrobot:greendao:3.3.0' // add library
+    implementation 'com.alibaba:fastjson:1.1.71.android'
 }

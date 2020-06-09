@@ -1,7 +1,9 @@
 #include <DetectionBasedTracker_jni.h>
 #include <opencv2/core.hpp>
 #include <opencv2/objdetect.hpp>
-
+#include <opencv2/features2d.hpp>
+#include <opencv2/imgcodecs.hpp>
+#include <opencv2/opencv.hpp>
 #include <string>
 #include <vector>
 
@@ -12,7 +14,8 @@
 
 using namespace std;
 using namespace cv;
-
+const float inlier_threshold = 2.5f; // Distance threshold to identify inliers
+const float nn_match_ratio = 0.8f;   // Nearest neighbor matching ratio
 inline void vector_Rect_to_Mat(vector<Rect>& v_rect, Mat& mat)
 {
     mat = Mat(v_rect, true);

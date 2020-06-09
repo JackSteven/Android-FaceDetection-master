@@ -1,5 +1,5 @@
 LOCAL_PATH := $(call my-dir)
-
+OPENCV_INSTALL_MODULES:=on
 include $(CLEAR_VARS)
 
 #OPENCV_INSTALL_MODULES:=off

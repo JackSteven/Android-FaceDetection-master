@@ -46,6 +46,8 @@ public class JavaCameraView extends CameraBridgeViewBase implements PreviewCallb
     private int mPreviewFormat = ImageFormat.NV21;
 
     private TextureView mSurfaceTexture;
+
+    public  int CameraId=0;
     public static class JavaCameraSizeAccessor implements ListItemAccessor {
 
         @Override
@@ -74,13 +76,14 @@ public class JavaCameraView extends CameraBridgeViewBase implements PreviewCallb
     protected boolean initializeCamera(int width, int height) {
         Log.d(TAG, "Initialize java camera");
         boolean result = true;
+        CameraId=SingleBaseConfig.getBaseConfig().getCameraId();
         synchronized (this) {
             mCamera = null;
 
             if (mCameraIndex == CAMERA_ID_ANY) {
                 Log.d(TAG, "Trying to open camera with old open()");
                 try {
-                    mCamera = Camera.open();
+                    mCamera = Camera.open(CameraId);
                 }
                 catch (Exception e){
                     Log.e(TAG, "Camera is not available (in use or does not exist): " + e.getLocalizedMessage());
@@ -91,7 +94,7 @@ public class JavaCameraView extends CameraBridgeViewBase implements PreviewCallb
                     for (int camIdx = 0; camIdx < Camera.getNumberOfCameras(); ++camIdx) {
                         Log.d(TAG, "Trying to open camera with new open(" + Integer.valueOf(camIdx) + ")");
                         try {
-                            mCamera = Camera.open(camIdx);
+                            mCamera = Camera.open(CameraId);
                             connected = true;
                         } catch (RuntimeException e) {
                             Log.e(TAG, "Camera #" + camIdx + "failed to open: " + e.getLocalizedMessage());
@@ -130,7 +133,7 @@ public class JavaCameraView extends CameraBridgeViewBase implements PreviewCallb
                     } else {
                         Log.d(TAG, "Trying to open camera with new open(" + Integer.valueOf(localCameraIndex) + ")");
                         try {
-                            mCamera = Camera.open(localCameraIndex);
+                            mCamera = Camera.open(CameraId);
                         } catch (RuntimeException e) {
                             Log.e(TAG, "Camera #" + localCameraIndex + "failed to open: " + e.getLocalizedMessage());
                         }
@@ -339,7 +342,9 @@ public class JavaCameraView extends CameraBridgeViewBase implements PreviewCallb
     public class JavaCameraFrame implements CvCameraViewFrame {
         @Override
         public Mat gray() {
-            return mYuvFrameData.submat(0, mHeight, 0, mWidth);
+            Mat submat = mYuvFrameData.submat(0, mHeight, 0, mWidth);
+            submat.setByteSize(mYuvFrameData.getByteSize());
+            return submat;
         }
 
         @Override
@@ -350,7 +355,7 @@ public class JavaCameraView extends CameraBridgeViewBase implements PreviewCallb
                 Imgproc.cvtColor(mYuvFrameData, mRgba, Imgproc.COLOR_YUV2RGB_I420, 4);  // COLOR_YUV2RGBA_YV12 produces inverted colors
             else
                 throw new IllegalArgumentException("Preview Format can be NV21 or YV12");
-
+            mRgba.setByteSize(mYuvFrameData.getByteSize());
             return mRgba;
         }
 

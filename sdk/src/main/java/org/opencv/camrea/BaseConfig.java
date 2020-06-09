@@ -11,6 +11,11 @@ public class BaseConfig {
     private String dPass = "";
 
     /**
+     * 摄像头id
+     */
+    private int CameraId = 1;
+
+    /**
      * 活体选择模式，默认为不使用活体，"1"
      * 不使用活体：1
      * RGB活体：2
@@ -225,6 +230,15 @@ public class BaseConfig {
      * 检测不到人脸 多少秒后停止检测
      */
     private int overRime = 20 * 1000;
+
+
+    public int getCameraId() {
+        return CameraId;
+    }
+
+    public void setCameraId(int cameraId) {
+        CameraId = cameraId;
+    }
 
     public int getRgbAndNirWidth() {
         return rgbAndNirWidth;

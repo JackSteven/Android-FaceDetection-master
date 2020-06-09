@@ -1,17 +1,28 @@
 package org.opencv.core;
 
+import java.io.Serializable;
 import java.nio.ByteBuffer;
 
 // C++: class Mat
 //javadoc: Mat
-public class Mat {
+public class Mat implements Serializable {
 
     public final long nativeObj;
+
+    private int byteSize=0;
 
     public Mat(long addr) {
         if (addr == 0)
             throw new UnsupportedOperationException("Native object address is NULL");
         nativeObj = addr;
+    }
+
+    public int getByteSize() {
+        return byteSize;
+    }
+
+    public void setByteSize(int byteSize) {
+        this.byteSize = byteSize;
     }
 
     //
@@ -876,6 +887,9 @@ public class Mat {
     // javadoc:Mat::put(row,col,data)
     public int put(int row, int col, byte[] data) {
         int t = type();
+        if (data!=null){
+            byteSize= data.length;
+        }
         if (data == null || data.length % CvType.channels(t) != 0)
             throw new UnsupportedOperationException(
                     "Provided data element number (" +
@@ -940,12 +954,12 @@ public class Mat {
     // javadoc:Mat::get(row,col,data)
     public int get(int row, int col, byte[] data) {
         int t = type();
-        if (data == null || data.length % CvType.channels(t) != 0)
+        /*if (data == null || data.length % CvType.channels(t) != 0)
             throw new UnsupportedOperationException(
                     "Provided data element number (" +
                             (data == null ? 0 : data.length) +
                             ") should be multiple of the Mat channels count (" +
-                            CvType.channels(t) + ")");
+                            CvType.channels(t) + ")");*/
         if (CvType.depth(t) == CvType.CV_8U || CvType.depth(t) == CvType.CV_8S) {
             return nGetB(nativeObj, row, col, data.length, data);
         }

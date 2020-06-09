@@ -4,25 +4,32 @@ import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.text.TextUtils;
+import android.util.Log;
 
-import org.bytedeco.javacpp.opencv_core.CvHistogram;
-import org.bytedeco.javacpp.opencv_core.IplImage;
+
+import org.opencv.android.Utils;
+import org.opencv.core.Algorithm;
+import org.opencv.core.Core;
+import org.opencv.core.DMatch;
+import org.opencv.core.KeyPoint;
 import org.opencv.core.Mat;
+import org.opencv.core.MatOfDMatch;
+import org.opencv.core.MatOfKeyPoint;
 import org.opencv.core.Rect;
 import org.opencv.core.Size;
-import org.opencv.highgui.Highgui;
+
+import org.opencv.features2d.AKAZE;
+
+import org.opencv.features2d.DescriptorMatcher;
+
+import org.opencv.imgcodecs.Imgcodecs;
 import org.opencv.imgproc.Imgproc;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
 
-import static org.bytedeco.javacpp.helper.opencv_imgproc.cvCalcHist;
-import static org.bytedeco.javacpp.opencv_core.CV_HIST_ARRAY;
-import static org.bytedeco.javacpp.opencv_imgcodecs.cvLoadImage;
-import static org.bytedeco.javacpp.opencv_imgproc.CV_COMP_CORREL;
-import static org.bytedeco.javacpp.opencv_imgproc.CV_COMP_INTERSECT;
-import static org.bytedeco.javacpp.opencv_imgproc.cvCompareHist;
-import static org.bytedeco.javacpp.opencv_imgproc.cvNormalizeHist;
-import static org.opencv.highgui.Highgui.CV_LOAD_IMAGE_GRAYSCALE;
 
 /**
  * Created by kqw on 2016/9/9.
@@ -50,10 +57,20 @@ public final class FaceUtil {
         Imgproc.cvtColor(image, grayMat, Imgproc.COLOR_BGR2GRAY);
         // 把检测到的人脸重新定义大小后保存成文件
         Mat sub = grayMat.submat(rect);
+
         Mat mat = new Mat();
-        Size size = new Size(100, 100);
+        Size size = new Size(300, 300);
         Imgproc.resize(sub, mat, size);
-        return Highgui.imwrite(getFilePath(context, fileName), mat);
+        String filePath = getFilePath(context, fileName);
+        return Imgcodecs.imwrite(filePath, mat);
+    }
+
+    public static boolean saveImagev2(Context context, Mat image, String fileName) {
+       /* Mat grayMat = new Mat();
+        Imgproc.cvtColor(image, grayMat, Imgproc.COLOR_BGR2GRAY);*/
+        String filePath = getFilePath(context, fileName);
+        return Imgcodecs.imwrite(filePath, image);
+
     }
 
     /**
@@ -94,6 +111,24 @@ public final class FaceUtil {
         }
     }
 
+    public static byte[] readStream(Context context, String fileName) {
+        try {
+            String filePath = getFilePath(context, fileName);
+            if (TextUtils.isEmpty(filePath)) {
+                return null;
+            } else {
+                Bitmap bitmap = BitmapFactory.decodeFile(filePath);
+                ByteArrayOutputStream baos = new ByteArrayOutputStream();
+                bitmap.compress(Bitmap.CompressFormat.PNG, 100, baos);
+                byte[] bytes = baos.toByteArray();
+                return bytes;
+            }
+        }catch (Exception e){
+
+        }
+        return null;
+    }
+
     /**
      * 特征对比
      *
@@ -102,7 +137,7 @@ public final class FaceUtil {
      * @param fileName2 人脸特征
      * @return 相似度
      */
-    public static double compare(Context context, String fileName1, String fileName2) {
+    /*public static double compare(Context context, String fileName1, String fileName2) {
         try {
             String pathFile1 = getFilePath(context, fileName1);
             String pathFile2 = getFilePath(context, fileName2);
@@ -128,17 +163,13 @@ public final class FaceUtil {
             // 参考：http://blog.csdn.net/nicebooks/article/details/8175002
             double c1 = cvCompareHist(Histogram1, Histogram2, CV_COMP_CORREL) * 100;
             double c2 = cvCompareHist(Histogram1, Histogram2, CV_COMP_INTERSECT);
-//            Log.i(TAG, "compare: ----------------------------");
-//            Log.i(TAG, "compare: c1 = " + c1);
-//            Log.i(TAG, "compare: c2 = " + c2);
-//            Log.i(TAG, "compare: 平均值 = " + ((c1 + c2) / 2));
-//            Log.i(TAG, "compare: ----------------------------");
             return (c1 + c2) / 2;
         } catch (Exception e) {
             e.printStackTrace();
             return -1;
         }
     }
+*/
 
     /**
      * 获取人脸特征路径
@@ -146,7 +177,7 @@ public final class FaceUtil {
      * @param fileName 人脸特征的图片的名字
      * @return 路径
      */
-    private static String getFilePath(Context context, String fileName) {
+    public static String getFilePath(Context context, String fileName) {
         if (TextUtils.isEmpty(fileName)) {
             return null;
         }
@@ -155,4 +186,44 @@ public final class FaceUtil {
         // 内存卡路径 需要SD卡读取权限
         // return Environment.getExternalStorageDirectory() + "/FaceDetect/" + fileName + ".jpg";
     }
+
+
+    /**
+     * BRISK  慢
+     * ORB
+     *
+     * @return
+     */
+    public static float match(Mat srcA, Mat srcB) {
+        //寻找关键点
+        AKAZE fd = AKAZE.create();
+        MatOfKeyPoint keyPointA = new MatOfKeyPoint();
+        MatOfKeyPoint keyPointB = new MatOfKeyPoint();
+        Mat descriptionA = new Mat();
+        Mat descriptionB = new Mat();
+        fd.detectAndCompute(srcA, descriptionA, keyPointA, descriptionA);
+        fd.detectAndCompute(srcB, descriptionB, keyPointB, descriptionB);
+        //匹配两张图片关键点的特征
+        List<MatOfDMatch> matches = new ArrayList<>();
+        DescriptorMatcher matcher = DescriptorMatcher.create(DescriptorMatcher.BRUTEFORCE);
+        matcher.knnMatch(descriptionA, descriptionB, matches, 2);
+        int total = Math.min(keyPointA.rows(), keyPointB.rows());
+        int matchedNum = 0;
+        for (MatOfDMatch match : matches) {
+            if (match.rows() != 0) {
+                List<DMatch> dMatches = match.toList();
+                if (dMatches != null && dMatches.size() > 0) {
+                    float dist1 = dMatches.get(0).distance;
+                    float dist2 = dMatches.get(1).distance;
+                    if (dist1 < 0.8 * dist2) {
+                        matchedNum++;
+                    }
+                }
+            }
+        }
+        //Log.d("mine", "matchedNum" + keyPointA.rows() + "_" + keyPointB.rows() + "_" + matchedNum);
+        float ratio = matchedNum * 1.0f / total;
+        return ratio;
+    }
+
 }
