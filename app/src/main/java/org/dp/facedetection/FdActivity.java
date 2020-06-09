@@ -434,8 +434,8 @@ public class FdActivity extends CameraActivity implements CvCameraViewListener2 
 
             @Override
             public void findUserFailure(Mat mat) {
-               // LogUtils.d("mine", "findUserFailure");
-              // FaceManager.getInstance().registerFace(mat,  "12345678", "张三");
+                LogUtils.d("mine", "findUserFailure");
+               FaceManager.getInstance().registerFace(mat,  "12345678", "张三");
                 isCheck = false;
             }
 
