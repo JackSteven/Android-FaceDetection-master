@@ -132,7 +132,7 @@ public final class FaceUtil {
     }
 
    /* *//**
-     * 特征对比 直方图 javacv 引用已删
+     * 特征对比 直方图 javacv 引用注释
      *
      * @param context   Context
      * @param fileName1 人脸特征
