@@ -30,6 +30,8 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
+import static org.opencv.highgui.Highgui.CV_LOAD_IMAGE_GRAYSCALE;
+
 
 /**
  * Created by kqw on 2016/9/9.
@@ -129,15 +131,15 @@ public final class FaceUtil {
         return null;
     }
 
-    /**
-     * 特征对比
+   /* *//**
+     * 特征对比 直方图 javacv 引用已删
      *
      * @param context   Context
      * @param fileName1 人脸特征
      * @param fileName2 人脸特征
      * @return 相似度
-     */
-    /*public static double compare(Context context, String fileName1, String fileName2) {
+     *//*
+    public static double compare(Context context, String fileName1, String fileName2) {
         try {
             String pathFile1 = getFilePath(context, fileName1);
             String pathFile2 = getFilePath(context, fileName2);
@@ -160,7 +162,6 @@ public final class FaceUtil {
             cvCalcHist(imageArr2, Histogram2, 0, null);
             cvNormalizeHist(Histogram1, 100.0);
             cvNormalizeHist(Histogram2, 100.0);
-            // 参考：http://blog.csdn.net/nicebooks/article/details/8175002
             double c1 = cvCompareHist(Histogram1, Histogram2, CV_COMP_CORREL) * 100;
             double c2 = cvCompareHist(Histogram1, Histogram2, CV_COMP_INTERSECT);
             return (c1 + c2) / 2;
@@ -168,8 +169,8 @@ public final class FaceUtil {
             e.printStackTrace();
             return -1;
         }
-    }
-*/
+    }*/
+
 
     /**
      * 获取人脸特征路径
